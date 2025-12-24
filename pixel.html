@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matina.com - تحقق من هوية المالك</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0514;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* خلفية */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://i.pinimg.com/736x/83/68/54/8368547fea75be927d2f0b5a33713a88.jpg') center/cover no-repeat;
+            opacity: 0.6;
+            z-index: -2;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(106, 13, 173, 0.9), rgba(23, 2, 39, 0.9));
+            z-index: -1;
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            width: 90%;
+            max-width: 450px;
+            margin: 20px;
+            z-index: 10;
+        }
+
+        /* الشعار */
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .logo h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, #ff00ff, #9d00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .logo p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        /* البطاقة */
+        .card {
+            background: rgba(20, 10, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 0, 255, 0.2);
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        /* العنوان */
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .title h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #ff00ff;
+        }
+
+        .title p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+
+        /* مراحل التحقق */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(45deg, #ff00ff, #9d00ff);
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .step.active .step-label {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+
+        /* مراحل المحتوى */
+        .step-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        /* الحقول */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        /* زر الاستمرار */
+        .next-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff00ff, #9d00ff);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .next-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* أسئلة التحقق */
+        .verification-question {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .question-text {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .answer-btn {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .answer-btn.selected {
+            background: linear-gradient(45deg, rgba(255, 0, 255, 0.2), rgba(157, 0, 255, 0.2));
+            border-color: #ff00ff;
+            color: #ff00ff;
+        }
+
+        /* الرسائل */
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff5555;
+            display: block;
+        }
+
+        /* زر العودة */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 0, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* الأنيميشن */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                max-width: 400px;
+            }
+
+            .logo h1 {
+                font-size: 2.2rem;
+            }
+
+            .card {
+                padding: 30px;
+            }
+
+            .back-btn {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .step-label {
+                font-size: 0.7rem;
+            }
+
+            .input-group input {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+
+            .next-btn {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- الخلفية -->
+    <div class="background"></div>
+    <div class="overlay"></div>
+
+    <!-- زر العودة -->
+    <button class="back-btn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="container">
+        
+        <!-- الشعار -->
+        <div class="logo">
+            <h1>Matina.com</h1>
+            <p>نظام التحقق من هوية المالك</p>
+        </div>
+
+        <!-- البطاقة -->
+        <div class="card">
+            
+            <!-- العنوان -->
+            <div class="title">
+                <h2>🔐 تحقق من هويتك كمالك</h2>
+                <p>يرجى إكمال الخطوات التالية للتحقق من هويتك</p>
+            </div>
+
+            <!-- مراحل التحقق -->
+            <div class="steps">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">المعلومات الأساسية</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">أسئلة التحقق</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">إنشاء الحساب</div>
+                </div>
+            </div>
+
+            <!-- رسائل -->
+            <div class="message" id="message"></div>
+
+            <!-- المرحلة 1: المعلومات الأساسية -->
+            <div class="step-content active" id="step1-content">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> اسم المالك الحقيقي</label>
+                    <div class="input-group">
+                        <input type="text" id="ownerName" placeholder="أدخل اسمك الحقيقي كما تسجله">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> البريد الإلكتروني الأساسي</label>
+                    <div class="input-group">
+                        <input type="email" id="ownerEmail" placeholder="أدخل بريدك الأساسي">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> رقم الهاتف (اختياري)</label>
+                    <div class="input-group">
+                        <input type="tel" id="ownerPhone" placeholder="رقم للتواصل معك">
+                    </div>
+                </div>
+
+                <button class="next-btn" onclick="goToStep(2)">التالي <i class="fas fa-arrow-left"></i></button>
+            </div>
+
+            <!-- المرحلة 2: أسئلة التحقق -->
+            <div class="step-content" id="step2-content">
+                <div class="verification-question">
+                    <div class="question-text">سؤال 1: ما هو الغرض الرئيسي من موقعك؟</div>
+                    <div class="answer-options">
+                        <button class="answer-btn" onclick="selectAnswer(1, 1)">عرض أعمالي ومشاريعي</button>
+                        <button class="answer-btn" onclick="selectAnswer(1, 2)">بيع منتجات أو خدمات</button>
+                        <button class="answer-btn" onclick="selectAnswer(1, 3)">مدونة شخصية أو تقنية</button>
+                        <button class="answer-btn" onclick="selectAnswer(1, 4)">موقع تواصل اجتماعي</button>
+                    </div>
+                </div>
+
+                <div class="verification-question">
+                    <div class="question-text">سؤال 2: متى بدأت التفكير في إنشاء هذا الموقع؟</div>
+                    <div class="answer-options">
+                        <button class="answer-btn" onclick="selectAnswer(2, 1)">منذ أقل من شهر</button>
+                        <button class="answer-btn" onclick="selectAnswer(2, 2)">منذ 1-3 أشهر</button>
+                        <button class="answer-btn" onclick="selectAnswer(2, 3)">منذ 3-6 أشهر</button>
+                        <button class="answer-btn" onclick="selectAnswer(2, 4)">أكثر من 6 أشهر</button>
+                    </div>
+                </div>
+
+                <div class="verification-question">
+                    <div class="question-text">سؤال 3: ما هي الفئة المستهدفة لموقعك؟</div>
+                    <div class="answer-options">
+                        <button class="answer-btn" onclick="selectAnswer(3, 1)">الأفراد والعملاء</button>
+                        <button class="answer-btn" onclick="selectAnswer(3, 2)">الشركات والمؤسسات</button>
+                        <button class="answer-btn" onclick="selectAnswer(3, 3)">المطورين والمصممين</button>
+                        <button class="answer-btn" onclick="selectAnswer(3, 4)">الجمهور العام</button>
+                    </div>
+                </div>
+
+                <button class="next-btn" onclick="goToStep(3)">التالي <i class="fas fa-arrow-left"></i></button>
+            </div>
+
+            <!-- المرحلة 3: إنشاء الحساب -->
+            <div class="step-content" id="step3-content">
+                <div class="form-group">
+                    <label><i class="fas fa-user-tag"></i> اسم المستخدم المميز للمالك</label>
+                    <div class="input-group">
+                        <input type="text" id="ownerUsername" placeholder="مثال: owner_ahmed">
+                    </div>
+                    <small style="color: rgba(255, 255, 255, 0.6); display: block; margin-top: 5px;">
+                        هذا الاسم سيكون خاصاً بك كمالك للموقع
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> كلمة مرور قوية</label>
+                    <div class="input-group">
+                        <input type="password" id="ownerPassword" placeholder="كلمة مرور قوية وآمنة">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> تأكيد كلمة المرور</label>
+                    <div class="input-group">
+                        <input type="password" id="ownerConfirm" placeholder="أعد إدخال كلمة المرور">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-shield-alt"></i> رمز التحقق الشخصي (اختياري)</label>
+                    <div class="input-group">
+                        <input type="text" id="ownerCode" placeholder="مثال: MATINA2024">
+                    </div>
+                    <small style="color: rgba(255, 255, 255, 0.6); display: block; margin-top: 5px;">
+                        يمكنك استخدامه لاستعادة الصلاحيات إذا نسيت بياناتك
+                    </small>
+                </div>
+
+                <button class="next-btn" onclick="createOwnerAccount()">إنشاء حساب المالك <i class="fas fa-crown"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات التحقق
+        let verificationData = {
+            step1: {},
+            step2: {
+                answers: {}
+            },
+            step3: {}
+        };
+
+        let currentStep = 1;
+
+        // الانتقال بين المراحل
+        function goToStep(step) {
+            // التحقق من البيانات قبل الانتقال
+            if (step === 2 && !validateStep1()) {
+                showMessage('يرجى ملء المعلومات الأساسية', 'error');
+                return;
+            }
+
+            if (step === 3 && !validateStep2()) {
+                showMessage('يرجى الإجابة على جميع الأسئلة', 'error');
+                return;
+            }
+
+            // تحديث المرحلة الحالية
+            currentStep = step;
+
+            // تحديث واجهة المراحل
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+
+            // تحديث محتوى المراحل
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`step${step}-content`).classList.add('active');
+
+            // إخفاء الرسائل
+            hideMessage();
+        }
+
+        // التحقق من المرحلة 1
+        function validateStep1() {
+            const name = document.getElementById('ownerName').value.trim();
+            const email = document.getElementById('ownerEmail').value.trim();
+
+            if (!name || !email) {
+                return false;
+            }
+
+            // التحقق من البريد الإلكتروني
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return false;
+            }
+
+            // حفظ البيانات
+            verificationData.step1 = {
+                name: name,
+                email: email,
+                phone: document.getElementById('ownerPhone').value.trim()
+            };
+
+            return true;
+        }
+
+        // اختيار إجابة
+        function selectAnswer(question, answer) {
+            // إزالة التحديد من جميع أزرار السؤال
+            const questionElement = document.querySelectorAll('.verification-question')[question - 1];
+            questionElement.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // تحديد الزر المختار
+            event.target.classList.add('selected');
+
+            // حفظ الإجابة
+            verificationData.step2.answers[`q${question}`] = answer;
+        }
+
+        // التحقق من المرحلة 2
+        function validateStep2() {
+            const answers = verificationData.step2.answers;
+            return Object.keys(answers).length === 3;
+        }
+
+        // التحقق من المرحلة 3 وإنشاء الحساب
+        function createOwnerAccount() {
+            const username = document.getElementById('ownerUsername').value.trim();
+            const password = document.getElementById('ownerPassword').value.trim();
+            const confirm = document.getElementById('ownerConfirm').value.trim();
+            const code = document.getElementById('ownerCode').value.trim();
+
+            // التحقق من البيانات
+            if (!username || !password || !confirm) {
+                showMessage('يرجى ملء جميع الحقول المطلوبة', 'error');
+                return;
+            }
+
+            if (password !== confirm) {
+                showMessage('كلمات المرور غير متطابقة', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'error');
+                return;
+            }
+
+            // التحقق إذا كان اسم المستخدم موجوداً مسبقاً
+            const existingUsers = JSON.parse(localStorage.getItem('matina_users')) || [];
+            const userExists = existingUsers.some(user => user.username === username);
+            
+            if (userExists) {
+                showMessage('اسم المستخدم هذا موجود مسبقاً، اختر اسماً آخر', 'error');
+                return;
+            }
+
+            // إنشاء حساب المالك
+            const ownerData = {
+                id: Date.now(),
+                name: verificationData.step1.name,
+                email: verificationData.step1.email,
+                phone: verificationData.step1.phone || '',
+                username: username,
+                password: password,
+                verificationCode: code || `MATINA${Date.now().toString().slice(-6)}`,
+                registrationDate: new Date().toLocaleDateString('ar-SA'),
+                isOnline: true,
+                lastLogin: new Date().toLocaleString('ar-SA'),
+                isAdmin: true,
+                isOwner: true,
+                verificationAnswers: verificationData.step2.answers,
+                ownerSince: new Date().toISOString()
+            };
+
+            // حفظ بيانات المالك
+            existingUsers.push(ownerData);
+            localStorage.setItem('matina_users', JSON.stringify(existingUsers));
+            localStorage.setItem('matina_is_admin', 'true');
+            localStorage.setItem('matina_owner_data', JSON.stringify(ownerData));
+
+            // إنشاء نسخة احتياطية من بيانات المالك
+            const backupData = {
+                ownerInfo: {
+                    name: ownerData.name,
+                    email: ownerData.email,
+                    username: ownerData.username,
+                    verificationCode: ownerData.verificationCode,
+                    ownerSince: ownerData.ownerSince
+                },
+                verification: verificationData,
+                timestamp: new Date().toISOString()
+            };
+
+            localStorage.setItem('matina_owner_backup', JSON.stringify(backupData));
+
+            // عرض رسالة نجاح
+            showMessage(`
+                🎉 تم إنشاء حساب المالك بنجاح!<br><br>
+                ✅ <strong>اسم المستخدم:</strong> ${username}<br>
+                ✅ <strong>البريد:</strong> ${ownerData.email}<br>
+                ✅ <strong>رمز التحقق:</strong> ${ownerData.verificationCode}<br><br>
+                🔒 <strong>احتفظ بهذه المعلومات في مكان آمن!</strong>
+            `, 'success');
+
+            // الانتقال للصفحة الرئيسية بعد 5 ثواني
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 5000);
+        }
+
+        // عرض الرسائل
+        function showMessage(text, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = text;
+            messageEl.className = 'message ' + type;
+        }
+
+        function hideMessage() {
+            const messageEl = document.getElementById('message');
+            messageEl.className = 'message';
+        }
+
+        // العودة للصفحة الرئيسية
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('صفحة التحقق من هوية المالك جاهزة!');
+            
+            // إضافة تأثيرات للحقول
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+
+            // التحقق إذا كان هناك مالك مسجل مسبقاً
+            const existingUsers = JSON.parse(localStorage.getItem('matina_users')) || [];
+            const existingOwner = existingUsers.find(user => user.isOwner);
+            
+            if (existingOwner) {
+                showMessage(`
+                    ⚠️ حساب مالك موجود مسبقاً!<br><br>
+                    إذا كنت المالك الحقيقي ونسيت بيانات الدخول:<br>
+                    1. اتصل بالدعم الفني<br>
+                    2. استخدم رمز التحقق الخاص بك<br>
+                    3. أو أنشئ حساب مالك جديد بعد التحقق
+                `, 'error');
+            }
+        });
+
+        // وظيفة استعادة الحساب (يمكن إضافتها لاحقاً)
+        function recoverOwnerAccount() {
+            // يمكن تطوير هذه الوظيفة لاحقاً
+            showMessage('وظيفة استعادة الحساب قيد التطوير', 'error');
+        }
+    </script>
+</body>
+</html>{
+  "name": "اسم المالك الحقيقي",
+  "email": "البريد الإلكتروني",
+  "username": "اسم المستخدم المميز",
+  "password": "كلمة المرور",
+  "verificationCode": "رمز التحقق الشخصي",
+  "isOwner": true,
+  "isAdmin": true
+}
